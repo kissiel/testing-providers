@@ -1,0 +1,223 @@
+id: bs_one
+plugin: resource
+_summary: wtf
+command:
+ for i in {1..100}; do echo hello: world$1; echo; done
+
+id: resource_cached
+plugin: resource
+_summary: resource_cached
+command:
+ for i in {1..100}; do echo hello: world$1; echo; done
+flags: cachable
+
+id: fakereboot
+flags: simple noreturn autorestart
+command: sleep 3600
+
+id: bs_two
+plugin: resource
+_summary: wtf
+user: root
+command: true
+
+id: printing_job
+flags: simple
+user: root
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job1
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job2
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job3
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job4
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job5
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job6
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printing_job7
+flags: simple
+command:
+ echo "This goes to stdout"
+ >&2 echo "This goes to stderr"
+
+id: printer
+flags: simple
+command:
+ for i in {1..100}; do echo foo bar foo bar $i; done
+
+id: whoami
+flags: simple
+command: whoami
+
+id: whoami-rooty
+flags: simple
+command: whoami
+user: root
+
+id: failing
+flags: simple
+command: false
+
+id: bin_passing
+flags: simple
+command: passing.sh
+
+id: bin_passing_rooty
+flags: simple
+command: passing.sh
+user: root
+
+id: bin_failing
+flags: simple
+command: failing.sh
+
+id: bin_interactive
+flags: simple
+command: interactive.sh
+
+id: bin_interactive_rooty
+flags: simple
+user: root
+command: interactive.sh
+
+id: whereami
+flags: simple
+command: pwd
+
+id: whereami-rooty
+flags: simple
+user: root
+command: pwd
+
+id: whereami-flagged
+flags: simple preserve-cwd
+command: pwd
+
+id: leftovers
+flags: simple
+command: touch foo
+
+id: leftovers-flagged
+flags: simple has-leftovers
+command: touch foo
+
+id: leftovers-preserved
+flags: simple preserve-cwd
+command: touch foo
+
+unit: test plan
+id: 0-testing
+_name: 0-testing
+bootstrap_include:
+ bs_one
+include:
+ printing_job
+ failing
+ whoami
+ whoami-rooty
+ #fakereboot
+ bin_passing
+ bin_passing_rooty
+ bin_failing
+ bin_interactive
+ bin_interactive_rooty
+
+unit: test plan
+id: 1-printing
+_name: 1-printing
+include:
+ printing_job\d
+
+unit: test plan
+id: 2-whereami
+_name: 2-whareami
+include:
+ whereami.*
+
+unit: test plan
+id: 3-leftovers
+_name: 3-leftovers
+include:
+ leftovers.*
+
+unit: test plan
+id: 4-printer
+_name: 4-printer
+bootstrap_include:
+ bs_one
+ bs_two
+include:
+ printer
+
+unit: test plan
+id: 5-wtf
+_name: 5-wtf
+include:
+ whoami
+ fakereboot
+ printing_job1
+
+unit: test plan
+id: 6-cached
+_name: 6-cached
+include:
+ whoami
+bootstrap_include:
+ resource_cached
+
+unit: test plan
+id: 7-sleepy
+_name: 7-sleepy
+include:
+ sleepy-one.*
+
+id: sleepy-one-root
+flags: simple
+user: root
+command: 
+ for i in {1..100}; do echo $i; sleep 1; done
+
+id: sleepy-one
+flags: simple
+command: 
+ for i in {1..100}; do echo $i; sleep 1; done
+
+id: test
+flags: simple
+command: test $THEVAR -eq 500
+
+unit: test plan
+id: 8-remote-env
+_name: 8-remote-env
+include:
+ test
